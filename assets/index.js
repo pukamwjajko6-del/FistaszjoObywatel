@@ -54,26 +54,50 @@ imageInput.addEventListener('change', (event) => {
     var data = new FormData();
     data.append("image", file);
 
-    fetch('	https://api.imgur.com/3/image' ,{
-        method: 'POST',
-        headers: {
-            'Authorization': 'Client-ID ec67bcef2e19c08'
-        },
-        body: data
-    })
-    .then(result => result.json())
-    .then(response => {
-        
-        var url = response.data.link;
-        upload.classList.remove("error_shown")
-        upload.setAttribute("selected", url);
-        upload.classList.add("upload_loaded");
-        upload.classList.remove("upload_loading");
-        upload.querySelector(".upload_uploaded").src = url;
+var upload = document.querySelector(".upload");
 
-    })
+var imageInput = document.createElement("input");
+imageInput.type = "file";
+imageInput.accept = ".jpeg,.png,.gif";
 
-})
+upload.addEventListener('click', () => {
+  imageInput.value = ""; // reset input so reselecting works
+  upload.classList.remove("error_shown");
+  imageInput.click();
+});
+
+imageInput.addEventListener('change', async () => {
+  if (!imageInput.files.length) return;
+
+  upload.classList.remove("upload_loaded");
+  upload.classList.add("upload_loading");
+  upload.removeAttribute("selected");
+
+  const file = imageInput.files[0];
+  const data = new FormData();
+  data.append("image", file);
+
+  try {
+    const res = await fetch("https://api.imgbb.com/1/upload?key=8ca5d96c7a478e5a16bb17c74a37f819", {
+      method: "POST",
+      body: data
+    });
+    const response = await res.json();
+
+    if (!response.success) throw new Error("Upload failed");
+
+    const url = response.data.url;
+
+    upload.classList.remove("upload_loading");
+    upload.classList.add("upload_loaded");
+    upload.querySelector(".upload_uploaded").src = url;
+    upload.setAttribute("selected", url);
+  } catch (err) {
+    console.error(err);
+    upload.classList.remove("upload_loading");
+    upload.classList.add("error_shown");
+  }
+});
 
 document.querySelector(".go").addEventListener('click', () => {
 
@@ -153,3 +177,4 @@ guide.addEventListener('click', () => {
     }
 
 })
+
