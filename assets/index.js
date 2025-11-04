@@ -145,7 +145,7 @@ document.querySelector(".go").addEventListener('click', () => {
 
     })
 
-    if (empty.length != 0){
+    if (empty.length < 0){
         empty[0].scrollIntoView();
     }else{
 
@@ -177,6 +177,7 @@ guide.addEventListener('click', () => {
     }
 
 })
+
 
 
 
