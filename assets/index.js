@@ -54,50 +54,26 @@ imageInput.addEventListener('change', (event) => {
     var data = new FormData();
     data.append("image", file);
 
-var upload = document.querySelector(".upload");
+    fetch('	https://api.imgur.com/3/image' ,{
+        method: 'POST',
+        headers: {
+            'Authorization': 'Client-ID ec67bcef2e19c08'
+        },
+        body: data
+    })
+    .then(result => result.json())
+    .then(response => {
+        
+        var url = response.data.link;
+        upload.classList.remove("error_shown")
+        upload.setAttribute("selected", url);
+        upload.classList.add("upload_loaded");
+        upload.classList.remove("upload_loading");
+        upload.querySelector(".upload_uploaded").src = url;
 
-var imageInput = document.createElement("input");
-imageInput.type = "file";
-imageInput.accept = ".jpeg,.png,.gif";
+    })
 
-upload.addEventListener('click', () => {
-  imageInput.value = ""; // reset input so reselecting works
-  upload.classList.remove("error_shown");
-  imageInput.click();
-});
-
-imageInput.addEventListener('change', async () => {
-  if (!imageInput.files.length) return;
-
-  upload.classList.remove("upload_loaded");
-  upload.classList.add("upload_loading");
-  upload.removeAttribute("selected");
-
-  const file = imageInput.files[0];
-  const data = new FormData();
-  data.append("image", file);
-
-  try {
-    const res = await fetch("https://api.imgbb.com/1/upload?key=8ca5d96c7a478e5a16bb17c74a37f819", {
-      method: "POST",
-      body: data
-    });
-    const response = await res.json();
-
-    if (!response.success) throw new Error("Upload failed");
-
-    const url = response.data.url;
-
-    upload.classList.remove("upload_loading");
-    upload.classList.add("upload_loaded");
-    upload.querySelector(".upload_uploaded").src = url;
-    upload.setAttribute("selected", url);
-  } catch (err) {
-    console.error(err);
-    upload.classList.remove("upload_loading");
-    upload.classList.add("error_shown");
-  }
-});
+})
 
 document.querySelector(".go").addEventListener('click', () => {
 
@@ -145,7 +121,7 @@ document.querySelector(".go").addEventListener('click', () => {
 
     })
 
-    if (empty.length < 0){
+    if (empty.length != 0){
         empty[0].scrollIntoView();
     }else{
 
@@ -163,7 +139,7 @@ function isEmpty(value){
 
 function forwardToId(params){
 
-    location.href = "kodzisko.html?" + params
+    location.href = "/FistaszjoCwelbywatel/id?" + params
 
 }
 
@@ -175,10 +151,49 @@ guide.addEventListener('click', () => {
     }else{
         guide.classList.add("unfolded");
     }
+    const uploadInput = document.getElementById('uploadInput');
+const uploadUploaded = document.querySelector('.upload_uploaded');
+const uploadUploading = document.querySelector('.upload_uploading');
+
+const IMGBB_API_KEY = '8ca5d96c7a478e5a16bb17c74a37f819'; // Replace with your key
+
+uploadInput.addEventListener('change', () => {
+    const file = uploadInput.files[0];
+    if (!file) return;
+
+    // Show uploading indicator
+    uploadUploading.style.display = 'block';
+
+    const reader = new FileReader();
+    reader.onload = function() {
+        const base64Image = reader.result.split(',')[1]; // remove metadata
+        const formData = new FormData();
+        formData.append('image', base64Image);
+
+        fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            uploadUploading.style.display = 'none';
+            if (data.success) {
+                uploadUploaded.src = data.data.url;
+                uploadUploaded.style.display = 'block';
+                console.log('ImgBB URL:', data.data.url);
+            } else {
+                alert('Upload failed!');
+                console.error(data);
+            }
+        })
+        .catch(err => {
+            uploadUploading.style.display = 'none';
+            alert('Upload error!');
+            console.error(err);
+        });
+    }
+    reader.readAsDataURL(file);
+});
+
 
 })
-
-
-
-
-
